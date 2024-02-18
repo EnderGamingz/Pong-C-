@@ -5,19 +5,21 @@
 
 using namespace sf;
 
-enum GameState {
-  MENU,
-  PLAY,
-};
-
 class MenuHandler {
 public:
   MenuHandler();
-  void draw();
+  void drawMenu(Event *event);
+  void drawCreateOnline(Event *event);
+  void drawConnectOnline(Event *event);
 
 private:
   Font font;
   Text title;
+  Text playLocal;
+  Text createOnline;
+  Text playOnline;
+  Text quit;
+  Text testButton;
 
   RenderWindow *window;
 };

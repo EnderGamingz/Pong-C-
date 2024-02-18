@@ -62,24 +62,30 @@ int main() {
     Time deltaTime = clock.restart();
 
     Event event{};
-    while (window->pollEvent(event)) {
-      if (event.type == Event::Closed) {
-        window->close();
-      }
-      if (event.type == Event::KeyPressed) {
-        if (event.key.code == Keyboard::Enter) {
-          players->at(1)->setControl(PlayerControl::AUTOMATIC);
-        }
-      }
-    }
+
+    window->clear(Color::Black);
 
     switch (gameState) {
       case GameState::MENU:
-        menuHandler.draw();
+        menuHandler.drawMenu(&event);
+        break;
+      case GameState::WAITING_FOR_CONNECTION:
+        menuHandler.drawCreateOnline(&event);
+        break;
+      case GameState::CONNECT_TO_PLAYER:
+        menuHandler.drawConnectOnline(&event);
         break;
       case GameState::PLAY:
-        window->clear(Color::Black);
-
+        while (window->pollEvent(event)) {
+          if (event.type == Event::Closed) {
+            window->close();
+          }
+          if (event.type == Event::KeyPressed) {
+            if (event.key.code == Keyboard::Enter) {
+              players->at(1)->setControl(PlayerControl::AUTOMATIC);
+            }
+          }
+        }
 
         for (int index = 0; index < players->size(); index++) {
           Player *player = players->at(index);
@@ -115,7 +121,6 @@ int main() {
         }
         break;
     }
-
 
     window->display();
   }

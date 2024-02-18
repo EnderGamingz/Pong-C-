@@ -22,6 +22,10 @@ GameHandler::GameHandler() {
     exit(1);
 
   cout << "GameHandler: Font loaded" << endl;
+
+  NetworkingHandler &_networkingHandler = *new NetworkingHandler();
+  this->networkingHandler = &_networkingHandler;
+  cout << "GameHandler: NetworkHandler loaded" << endl;
 }
 
 GameHandler &GameHandler::getInstance() {
@@ -43,4 +47,49 @@ void GameHandler::setGameState(GameState state) {
 
 GameState GameHandler::getGameState() {
   return this->gameState;
+}
+
+void GameHandler::setGameType(GameType type) {
+  this->gameType = type;
+}
+
+GameType GameHandler::getGameType() {
+  return this->gameType;
+}
+
+void GameHandler::onlineListen() const {
+  if (networkingHandler->status == NetworkStatus::IDLE) {
+    networkingHandler->role = NetworkRole::HOST;
+    if (networkingHandler->listen(6995)) {
+      networkingHandler->status = NetworkStatus::LISTENING;
+    } else {
+      networkingHandler->status = NetworkStatus::ERROR;
+    }
+  }
+}
+
+NetworkStatus GameHandler::onlineAccept() const {
+  if (networkingHandler->status != NetworkStatus::CONNECTED) {
+    networkingHandler->status = networkingHandler->accept();
+  }
+  return networkingHandler->status;
+}
+
+void GameHandler::onlineConnect() {
+  NetworkStatus status = networkingHandler->status;
+  if (status == NetworkStatus::CONNECTED) {
+    networkingHandler->receiveGameState();
+    this->gameStateData = networkingHandler->gameStateData;
+  }
+  if (status == NetworkStatus::IDLE || status == NetworkStatus::CONNECTING) {
+    networkingHandler->role = NetworkRole::CLIENT;
+    networkingHandler->status = networkingHandler->connect("127.0.0.1", 6995);
+  }
+}
+
+void GameHandler::onlineDisconnect() {
+  if (networkingHandler->status == NetworkStatus::CONNECTED) {
+    networkingHandler->status = NetworkStatus::IDLE;
+    networkingHandler->disconnect();
+  }
 }
