@@ -29,6 +29,8 @@ add_executable(pong main.cpp
         MenuHandler/MenuHandler.h
         NetworkingHandler/NetworkingHandler.cpp
         NetworkingHandler/NetworkingHandler.h
+        NetworkPayload/NetworkPayload.h
+        NetworkPayload/NetworkPayload.cpp
 )
 
 target_link_libraries(pong sfml-system sfml-window sfml-graphics sfml-network sfml-audio)

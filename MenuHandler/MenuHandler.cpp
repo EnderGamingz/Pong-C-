@@ -1,6 +1,5 @@
 #include "MenuHandler.h"
 #include "../GameHandler/GameHandler.h"
-#include "../NetworkingHandler/NetworkingHandler.h"
 
 MenuHandler::MenuHandler() {
   this->window = GameHandler::getInstance().getWindow();
@@ -71,8 +70,9 @@ void MenuHandler::drawMenu(Event *event) {
 }
 void MenuHandler::drawCreateOnline(Event *event) {
   GameHandler::getInstance().onlineAccept();
-  NetworkStatus connectionStatus = GameHandler::getInstance().networkingHandler->status;
-  NetworkRole role = GameHandler::getInstance().networkingHandler->role;
+  NetworkingHandler *networkingHandlerInstance = GameHandler::getInstance().networkingHandler;
+  NetworkStatus connectionStatus = networkingHandlerInstance->status;
+  NetworkRole role = networkingHandlerInstance->role;
   switch (connectionStatus) {
     case NetworkStatus::CONNECTED:
       title.setString("Other player connected");
@@ -88,7 +88,7 @@ void MenuHandler::drawCreateOnline(Event *event) {
 
   title.setPosition({window->getSize().x / 2 - title.getLocalBounds().width / 2, 10});
   this->window->draw(this->title);
-  if (connectionStatus == NetworkStatus::CONNECTED && role == NetworkRole::HOST){
+  if (connectionStatus == NetworkStatus::CONNECTED && role == NetworkRole::HOST) {
     this->window->draw(this->testButton);
   }
 
@@ -98,7 +98,10 @@ void MenuHandler::drawCreateOnline(Event *event) {
     }
     if (event->type == Event::MouseButtonPressed) {
       if (this->testButton.getGlobalBounds().contains(event->mouseButton.x, event->mouseButton.y)) {
-        GameHandler::getInstance().networkingHandler->sendGameState("test");
+        NetworkPayload payload = {20.0f, 20.0f};
+        if (!networkingHandlerInstance->sendGameState(payload)) {
+          networkingHandlerInstance->status = NetworkStatus::ERROR;
+        }
       }
     }
   }
@@ -106,11 +109,10 @@ void MenuHandler::drawCreateOnline(Event *event) {
 
 void MenuHandler::drawConnectOnline(Event *event) {
   GameHandler::getInstance().onlineConnect();
-  String data = GameHandler::getInstance().gameStateData;
   NetworkStatus connectionStatus = GameHandler::getInstance().networkingHandler->status;
   switch (connectionStatus) {
     case NetworkStatus::CONNECTED:
-      title.setString("Connected to other player: " + data);
+      title.setString("Connected to other player");
       break;
     case NetworkStatus::CONNECTING:
       title.setString("Connecting to other player");

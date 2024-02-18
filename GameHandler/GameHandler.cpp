@@ -78,7 +78,9 @@ NetworkStatus GameHandler::onlineAccept() const {
 void GameHandler::onlineConnect() {
   NetworkStatus status = networkingHandler->status;
   if (status == NetworkStatus::CONNECTED) {
-    networkingHandler->receiveGameState();
+    if (!networkingHandler->receiveGameState()) {
+      networkingHandler->status = NetworkStatus::ERROR;
+    }
     this->gameStateData = networkingHandler->gameStateData;
   }
   if (status == NetworkStatus::IDLE || status == NetworkStatus::CONNECTING) {

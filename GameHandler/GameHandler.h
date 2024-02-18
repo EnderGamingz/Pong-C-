@@ -53,7 +53,7 @@ public:
   GameState gameState = GameState::MENU;
   GameType gameType = GameType::LOCAL;
   NetworkingHandler *networkingHandler;
-  String gameStateData = "";
+  NetworkPayload gameStateData;
 };
 
 #endif//PONG_GAMEHANDLER_H

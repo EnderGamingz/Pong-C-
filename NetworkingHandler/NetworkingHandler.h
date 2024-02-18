@@ -1,6 +1,7 @@
 #ifndef PONG_NETWORKINGHANDLER_H
 #define PONG_NETWORKINGHANDLER_H
 
+#include "../NetworkPayload/NetworkPayload.h"
 #include "SFML/Network.hpp"
 #include "iostream"
 
@@ -28,15 +29,15 @@ public:
 
   bool listen(unsigned short port);
   NetworkStatus connect(const IpAddress &ip, unsigned short port);
-  void sendGameState(const String &gameState);
-  void receiveGameState();
+  bool sendGameState(const NetworkPayload &gameState);
+  bool receiveGameState();
   NetworkStatus accept();
   void disconnect();
 
   NetworkStatus status = IDLE;
   NetworkRole role = CLIENT;
 
-  String gameStateData = "";
+  NetworkPayload gameStateData;
 
 private:
   TcpSocket socket;
