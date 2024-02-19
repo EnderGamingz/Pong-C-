@@ -14,6 +14,7 @@ enum NetworkStatus {
   AWAITING_CONNECTION,
   CONNECTING,
   CONNECTED,
+  POST_CONNECTION,
   ERROR
 };
 
@@ -37,12 +38,14 @@ public:
   NetworkStatus status = IDLE;
   NetworkRole role = CLIENT;
 
-  NetworkPayload gameStateData;
+  NetworkPayload gameStateData{};
+
+  int errorTimeout = 0;
+  int errorTimeoutMax = 50;
 
 private:
   TcpSocket socket;
   TcpListener listener;
-
 };
 
 

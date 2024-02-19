@@ -117,6 +117,20 @@ void Ball::reset() {
 
   angle = static_cast<float>(startingAngle(engine));
 }
+
 CircleShape *Ball::getBody() {
   return &body;
+}
+
+void Ball::setControlType(BallControl type) {
+  this->control = type;
+}
+
+BallControl Ball::getControlType() {
+  return control;
+}
+void Ball::setPosition(float x, float y) {
+  pos_x = x;
+  pos_y = y;
+  body.setPosition(pos_x, pos_y);
 }

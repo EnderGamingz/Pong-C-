@@ -27,6 +27,8 @@ public:
   void init_ball();
   void init_pointCounter();
 
+  void prepareOnlineGame();
+
   [[nodiscard]] int getCurrentBallOwnerIndex() const;
   void setBallOwnerIndex(int index);
 
@@ -35,7 +37,6 @@ public:
 private:
   vector<Player*> players;
   Ball *ball;
-  Vector2f ballPosition;
   PointCounter *pointCounter;
   int currentBallOwnerIndex = -1;
   vector<PowerUp*> powerUps;

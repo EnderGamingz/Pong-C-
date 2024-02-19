@@ -49,9 +49,11 @@ Ball *EntityHandler::getBall() {
 PointCounter *EntityHandler::getPointCounter() {
   return pointCounter;
 }
+
 int EntityHandler::getCurrentBallOwnerIndex() const {
   return currentBallOwnerIndex;
 }
+
 void EntityHandler::setBallOwnerIndex(int index) {
   currentBallOwnerIndex = index;
 }
@@ -63,6 +65,7 @@ void EntityHandler::reset() {
     player->reset();
   }
 }
+
 vector<PowerUp *> *EntityHandler::getPowerUps() {
   return &powerUps;
 }
@@ -70,8 +73,13 @@ vector<PowerUp *> *EntityHandler::getPowerUps() {
 void EntityHandler::addPowerUp(PowerUp *powerUp) {
   powerUps.push_back(powerUp);
 }
+
 Vector2f EntityHandler::getBallPosition() {
   return ball->getBody()->getPosition();
+}
+
+void EntityHandler::prepareOnlineGame() {
+
 }
 
 EntityHandler::EntityHandler() = default;

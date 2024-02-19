@@ -11,8 +11,9 @@
 using namespace sf;
 
 enum PlayerControl {
-  MANUAL = 0,
-  AUTOMATIC = 1
+  MANUAL,
+  AUTOMATIC,
+  REMOTE,
 };
 
 enum PlayerSide {

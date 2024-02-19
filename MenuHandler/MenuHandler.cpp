@@ -48,21 +48,23 @@ void MenuHandler::drawMenu(Event *event) {
       window->close();
     }
     if (event->type == Event::MouseButtonPressed) {
-      if (this->playLocal.getGlobalBounds().contains(event->mouseButton.x, event->mouseButton.y)) {
+      int mouse_x = event->mouseButton.x;
+      int mouse_y = event->mouseButton.y;
+      if (this->playLocal.getGlobalBounds().contains(mouse_x, mouse_y)) {
         GameHandler::getInstance().setGameState(GameState::PLAY);
         GameHandler::getInstance().setGameType(GameType::LOCAL);
 
-      } else if (this->playOnline.getGlobalBounds().contains(event->mouseButton.x, event->mouseButton.y)) {
+      } else if (this->playOnline.getGlobalBounds().contains(mouse_x, mouse_y)) {
         GameHandler::getInstance().setGameState(GameState::CONNECT_TO_PLAYER);
         GameHandler::getInstance().setGameType(GameType::ONLINE);
 
-      } else if (this->createOnline.getGlobalBounds().contains(event->mouseButton.x, event->mouseButton.y)) {
+      } else if (this->createOnline.getGlobalBounds().contains(mouse_x, mouse_y)) {
         GameHandler::getInstance().setGameState(GameState::WAITING_FOR_CONNECTION);
         GameHandler::getInstance().setGameType(GameType::ONLINE);
         GameHandler::getInstance().onlineListen();
 
 
-      } else if (this->quit.getGlobalBounds().contains(event->mouseButton.x, event->mouseButton.y)) {
+      } else if (this->quit.getGlobalBounds().contains(mouse_x, mouse_y)) {
         window->close();
       }
     }
@@ -77,17 +79,21 @@ void MenuHandler::drawCreateOnline(Event *event) {
     case NetworkStatus::CONNECTED:
       title.setString("Other player connected");
       break;
+    case NetworkStatus::CONNECTING:
+      title.setString("Connection in progress...");
+      break;
     case NetworkStatus::LISTENING:
     case NetworkStatus::AWAITING_CONNECTION:
-      title.setString("Waiting for other player");
+      title.setString("Waiting for TCP connection...");
       break;
     case NetworkStatus::ERROR:
-      title.setString("Error Connecting");
+      title.setString("Socket Error, try again");
       break;
   }
 
   title.setPosition({window->getSize().x / 2 - title.getLocalBounds().width / 2, 10});
   this->window->draw(this->title);
+
   if (connectionStatus == NetworkStatus::CONNECTED && role == NetworkRole::HOST) {
     this->window->draw(this->testButton);
   }

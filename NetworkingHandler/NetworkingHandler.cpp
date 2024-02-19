@@ -33,15 +33,23 @@ NetworkStatus NetworkingHandler::accept() {
   }
   if (socketStatus == Socket::NotReady) return NetworkStatus::AWAITING_CONNECTION;
   cout << "Networking Handler: Connection accepted" << endl;
-  return NetworkStatus::CONNECTED;
+  return NetworkStatus::POST_CONNECTION;
 }
 
 bool NetworkingHandler::sendGameState(const NetworkPayload &gameState) {
+  if (status != NetworkStatus::CONNECTED) return false;
   Packet packet;
   packet << gameState;
 
   if (socket.send(packet) != sf::Socket::Done) {
     cout << "Networking Handler: Failed to send packet" << endl;
+    if (errorTimeout < errorTimeoutMax) {
+      errorTimeout++;
+    } else {
+      errorTimeout = 0;
+      cout << "Networking Handler: Timed out sending packet" << endl;
+      status = NetworkStatus::ERROR;
+    }
     return false;
   }
   return true;
@@ -57,7 +65,7 @@ NetworkStatus NetworkingHandler::connect(const IpAddress &ip, unsigned short por
   if (connectionStatus == Socket::NotReady) return NetworkStatus::CONNECTING;
   cout << "Networking Handler: Connected" << endl;
   socket.setBlocking(false);
-  return NetworkStatus::CONNECTED;
+  return NetworkStatus::POST_CONNECTION;
 }
 
 bool NetworkingHandler::receiveGameState() {
@@ -66,6 +74,13 @@ bool NetworkingHandler::receiveGameState() {
   if (socketStatus == sf::Socket::NotReady) return true;
   if (socketStatus == sf::Socket::Error || socketStatus == sf::Socket::Disconnected) {
     cout << "Networking Handler: Failed to receive packet" << endl;
+    if (errorTimeout < errorTimeoutMax) {
+      errorTimeout++;
+    } else {
+      errorTimeout = 0;
+      cout << "Networking Handler: Timed out receiving packet" << endl;
+      status = NetworkStatus::ERROR;
+    }
     return false;
   }
 

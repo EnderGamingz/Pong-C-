@@ -15,6 +15,7 @@ enum GameState {
 enum GameType {
   LOCAL,
   ONLINE,
+  ONLINE_HOST
 };
 
 using namespace sf;
@@ -29,14 +30,14 @@ public:
   Font &getFont();
 
   void setGameState(GameState state);
-  GameState getGameState();
+  GameState getGameState() const;
 
   void setGameType(GameType type);
-  GameType getGameType();
+  GameType getGameType() const;
 
   void onlineListen() const;
   void onlineConnect();
-  void onlineDisconnect();
+  void onlineDisconnect() const;
   NetworkStatus onlineAccept() const;
 
 private:
@@ -53,7 +54,7 @@ public:
   GameState gameState = GameState::MENU;
   GameType gameType = GameType::LOCAL;
   NetworkingHandler *networkingHandler;
-  NetworkPayload gameStateData;
+  NetworkPayload *gameStateData{};
 };
 
 #endif//PONG_GAMEHANDLER_H

@@ -13,12 +13,17 @@ using namespace sf;
 using namespace std;
 
 PowerUp *createPowerUp(int type) {
-  switch(type) {
-    case 0: return new SpeedPowerUp();
-    case 1: return new GrowPowerUp();
-    case 2: return new ShrinkPowerUp();
-    case 3: return new SlowPowerUp();
-    default: return nullptr;
+  switch (type) {
+    case 0:
+      return new SpeedPowerUp();
+    case 1:
+      return new GrowPowerUp();
+    case 2:
+      return new ShrinkPowerUp();
+    case 3:
+      return new SlowPowerUp();
+    default:
+      return nullptr;
   }
 }
 
@@ -32,33 +37,35 @@ PowerUp *getRandomPowerUp() {
 
 int main() {
 
-  RenderWindow *window = GameHandler::getInstance().getWindow();
-
-  EntityHandler::getInstance().init_players();
-  EntityHandler::getInstance().init_ball();
-  EntityHandler::getInstance().init_pointCounter();
-
-  SoundHandler::getInstance();
+  GameHandler &gameHandler = GameHandler::getInstance();
+  EntityHandler &entityHandler = EntityHandler::getInstance();
+  SoundHandler &soundHandler = SoundHandler::getInstance();
   TextureHandler::getInstance();
+  MenuHandler &menuHandler = *new MenuHandler();
 
-  vector<Player *> *players = EntityHandler::getInstance().getPlayers();
-  Ball *ball = EntityHandler::getInstance().getBall();
-  PointCounter *pointCounter = EntityHandler::getInstance().getPointCounter();
-  vector<PowerUp *> *powerUps = EntityHandler::getInstance().getPowerUps();
+  RenderWindow *window = gameHandler.getWindow();
 
-  SoundHandler::getInstance().playMusic("../assets/sounds/background.wav");
+  entityHandler.init_players();
+  entityHandler.init_ball();
+  entityHandler.init_pointCounter();
+
+  vector<Player *> *players = entityHandler.getPlayers();
+  Ball *ball = entityHandler.getBall();
+  PointCounter *pointCounter = entityHandler.getPointCounter();
+  vector<PowerUp *> *powerUps = entityHandler.getPowerUps();
+
+  soundHandler.playMusic("../assets/sounds/background.wav");
 
   Clock clock;
   Clock powerUpClock;
   Time powerUpTime = seconds(5);
 
-  auto menuHandler = *new MenuHandler();
-
   /**
   * Main Loop
   */
   while (window->isOpen()) {
-    GameState gameState = GameHandler::getInstance().getGameState();
+    GameState gameState = gameHandler.getGameState();
+    GameType gameType = gameHandler.gameType;
     Time deltaTime = clock.restart();
 
     Event event{};
@@ -76,48 +83,73 @@ int main() {
         menuHandler.drawConnectOnline(&event);
         break;
       case GameState::PLAY:
-        while (window->pollEvent(event)) {
-          if (event.type == Event::Closed) {
-            window->close();
-          }
-          if (event.type == Event::KeyPressed) {
-            if (event.key.code == Keyboard::Enter) {
-              players->at(1)->setControl(PlayerControl::AUTOMATIC);
+        if (gameType == GameType::LOCAL || gameType == GameType::ONLINE_HOST) {
+          while (window->pollEvent(event)) {
+            if (event.type == Event::Closed) {
+              window->close();
+            }
+            if (event.type == Event::KeyPressed && gameType == GameType::LOCAL) {
+              if (event.key.code == Keyboard::Enter) {
+                players->at(1)->setControl(PlayerControl::AUTOMATIC);
+              }
             }
           }
-        }
 
-        for (int index = 0; index < players->size(); index++) {
-          Player *player = players->at(index);
-          player->draw();
-          player->update(index, deltaTime);
-        }
-
-        ball->draw();
-        ball->update();
-
-        pointCounter->draw();
-
-        for (auto powerUp: *powerUps) {
-          powerUp->draw();
-        }
-
-        if (powerUpClock.getElapsedTime() > powerUpTime) {
-          if (EntityHandler::getInstance().getCurrentBallOwnerIndex() != -1) {
-
-            mt19937 &engine = RandomEngine::getInstance().getEngine();
-            uniform_int_distribution<> pos_x_distribution(0, (int) window->getSize().x);
-            uniform_int_distribution<> pos_y_distribution(0, (int) window->getSize().y);
-
-            int x = pos_x_distribution(engine);
-            int y = pos_y_distribution(engine);
-            PowerUp *powerUp = getRandomPowerUp();
-            if (powerUp == nullptr) return 0;
-            powerUp->setPosition(Vector2f(x, y));
-            EntityHandler::getInstance().addPowerUp(powerUp);
+          for (int index = 0; index < players->size(); index++) {
+            Player *player = players->at(index);
+            player->draw();
+            player->update(index, deltaTime);
           }
 
-          powerUpClock.restart();
+          ball->draw();
+          ball->update();
+          if (gameType == GameType::ONLINE_HOST) {
+            auto ballPos = ball->getBody()->getPosition();
+            NetworkPayload networkPayload{};
+            networkPayload.ball_x = ballPos.x;
+            networkPayload.ball_y = ballPos.y;
+
+            gameHandler.networkingHandler->sendGameState(networkPayload);
+          }
+
+          pointCounter->draw();
+
+          for (auto powerUp: *powerUps) {
+            powerUp->draw();
+          }
+
+          if (powerUpClock.getElapsedTime() > powerUpTime && gameType == GameType::LOCAL) {
+            if (entityHandler.getCurrentBallOwnerIndex() != -1) {
+
+              mt19937 &engine = RandomEngine::getInstance().getEngine();
+              uniform_int_distribution<> pos_x_distribution(0, (int) window->getSize().x);
+              uniform_int_distribution<> pos_y_distribution(0, (int) window->getSize().y);
+
+              int x = pos_x_distribution(engine);
+              int y = pos_y_distribution(engine);
+              PowerUp *powerUp = getRandomPowerUp();
+              if (powerUp == nullptr) return 0;
+              powerUp->setPosition(Vector2f((float) x, (float) y));
+              entityHandler.addPowerUp(powerUp);
+            }
+
+            powerUpClock.restart();
+          }
+        } else if (gameType == GameType::ONLINE) {
+          gameHandler.networkingHandler->receiveGameState();
+          NetworkPayload *gameStateData = &gameHandler.networkingHandler->gameStateData;
+          while (window->pollEvent(event)) {
+            if (event.type == Event::Closed) {
+              window->close();
+            }
+          }
+
+          ball->draw();
+          ball->setPosition(gameStateData->ball_x, gameStateData->ball_y);
+
+          pointCounter->draw();
+
+
         }
         break;
     }

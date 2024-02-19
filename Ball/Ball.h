@@ -13,6 +13,11 @@
 using namespace sf;
 using namespace std;
 
+enum BallControl{
+  LOCAL_CONTROL,
+  REMOTE_CONTROL
+};
+
 
 class Ball {
 public:
@@ -25,6 +30,11 @@ public:
 
   CircleShape *getBody();
 
+  void setPosition(float x, float y);
+
+  void setControlType(BallControl type);
+  BallControl getControlType();
+
 private:
   vector<Player *> *players;
   vector<PowerUp *> *powerUps;
@@ -35,4 +45,5 @@ private:
   float angle = 0.0f;
   float radius = 15.0f;
   float speed = 10.0f;
+  BallControl control = LOCAL_CONTROL;
 };
