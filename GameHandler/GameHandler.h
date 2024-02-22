@@ -9,6 +9,7 @@ enum GameState {
   MENU,
   PLAY,
   WAITING_FOR_CONNECTION,
+  CONNECTING_TO_PLAYER,
   CONNECT_TO_PLAYER,
 };
 
@@ -44,7 +45,6 @@ private:
   RenderWindow window;
   Font main_font;
 
-
 public:
   // Disable copy and assign
   GameHandler(const GameHandler &) = delete;
@@ -53,8 +53,10 @@ public:
   int window_width;
   GameState gameState = GameState::MENU;
   GameType gameType = GameType::LOCAL;
+  String ipAddress = "127.0.0.1";
   NetworkingHandler *networkingHandler;
   NetworkPayload *gameStateData{};
+
 };
 
 #endif//PONG_GAMEHANDLER_H

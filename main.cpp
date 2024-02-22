@@ -9,6 +9,7 @@
 #include "random"
 #include <SFML/Graphics.hpp>
 
+void handleOnline(GameHandler &gameHandler, EntityHandler &entityHandler, RenderWindow *window, vector<Player *> *players, Ball *ball, PointCounter *pointCounter, GameType &gameType, Time &deltaTime, Event &event);
 using namespace sf;
 using namespace std;
 
@@ -42,6 +43,20 @@ Player *getFirstPlayerWithControlType(vector<Player *> *players, PlayerControl c
     }
   }
   return nullptr;
+}
+
+void handleKeyPressEvent(vector<Player *> *players, Event &event) {
+  if (event.key.code == Keyboard::Enter)
+    players->at(1)->setControl(PlayerControl::AUTOMATIC);
+}
+
+void handlePollEvent(RenderWindow *window, Event &event, GameType gameType, vector<Player *> *players) {
+  while (window->pollEvent(event)) {
+    if (event.type == Event::Closed) window->close();
+    if (Keyboard::isKeyPressed(Keyboard::Escape)) GameHandler::getInstance().setGameState(GameState::MENU);
+    else if (event.type == Event::KeyPressed && gameType == GameType::LOCAL)
+      handleKeyPressEvent(players, event);
+  }
 }
 
 int main() {
@@ -89,20 +104,15 @@ int main() {
         menuHandler.drawCreateOnline(&event);
         break;
       case GameState::CONNECT_TO_PLAYER:
+        menuHandler.drawConnectOnlineInput(&event);
+        break;
+      case GameState::CONNECTING_TO_PLAYER:
         menuHandler.drawConnectOnline(&event);
         break;
       case GameState::PLAY:
         if (gameType == GameType::LOCAL || gameType == GameType::ONLINE_HOST) {
-          while (window->pollEvent(event)) {
-            if (event.type == Event::Closed) {
-              window->close();
-            }
-            if (event.type == Event::KeyPressed && gameType == GameType::LOCAL) {
-              if (event.key.code == Keyboard::Enter) {
-                players->at(1)->setControl(PlayerControl::AUTOMATIC);
-              }
-            }
-          }
+
+          handlePollEvent(window, event, gameType, players);
 
           for (int index = 0; index < players->size(); index++) {
             Player *player = players->at(index);
@@ -111,12 +121,12 @@ int main() {
           }
 
           if (gameType == ONLINE_HOST) {
-           gameHandler.networkingHandler->receiveClientState();
-           ClientToHostPayload clientPayload = gameHandler.networkingHandler->clientStateData;
-           Player* remotePlayer = getFirstPlayerWithControlType(players, PlayerControl::REMOTE);
-           if (remotePlayer != nullptr) {
-             remotePlayer->getBody()->setPosition(remotePlayer->getBody()->getPosition().x, clientPayload.client_y);
-           }
+            gameHandler.networkingHandler->receiveClientState();
+            ClientToHostPayload clientPayload = gameHandler.networkingHandler->clientStateData;
+            Player *remotePlayer = getFirstPlayerWithControlType(players, PlayerControl::REMOTE);
+            if (remotePlayer != nullptr) {
+              remotePlayer->getBody()->setPosition(remotePlayer->getBody()->getPosition().x, clientPayload.client_y);
+            }
           }
 
           ball->draw();
@@ -167,43 +177,7 @@ int main() {
             powerUpClock.restart();
           }
         } else if (gameType == GameType::ONLINE) {
-          gameHandler.networkingHandler->receiveGameState();
-          NetworkPayload *gameStateData = &gameHandler.networkingHandler->gameStateData;
-          while (window->pollEvent(event)) {
-            if (event.type == Event::Closed) {
-              window->close();
-            }
-          }
-
-          ball->draw();
-          ball->setPosition(gameStateData->ball_x, gameStateData->ball_y);
-          entityHandler.getPointCounter()->setScoresFromParams(gameStateData->player1_score, gameStateData->player2_score);
-          entityHandler.setBallOwnerIndex(gameStateData->player_owning_ball);
-
-          pointCounter->draw();
-
-          for (int index = 0; index < players->size(); index++) {
-            Player *player = players->at(index);
-
-            // Update the remote player position
-            if (player->getControl() == PlayerControl::REMOTE) {
-              RectangleShape *playerBody = player->getBody();
-              playerBody->setPosition(playerBody->getPosition().x, gameStateData->host_y);
-            }
-
-            player->update(index, deltaTime);
-            player->draw();
-          }
-
-          // Send client player data to Host
-          ClientToHostPayload clientPayload = gameHandler.networkingHandler->clientStateData;
-          Player* manualPlayer = getFirstPlayerWithControlType(players, PlayerControl::MANUAL);
-          if (manualPlayer != nullptr) {
-            clientPayload.client_y = manualPlayer->getBody()->getPosition().y;
-          }
-
-          gameHandler.networkingHandler->sendClientState(clientPayload);
-
+          handleOnline(gameHandler, entityHandler, window, players, ball, pointCounter, gameType, deltaTime, event);
         }
         break;
     }
@@ -211,4 +185,39 @@ int main() {
   }
 
   return 0;
+}
+void handleOnline(GameHandler &gameHandler, EntityHandler &entityHandler, RenderWindow *window, vector<Player *> *players, Ball *ball, PointCounter *pointCounter, GameType &gameType, Time &deltaTime, Event &event) {
+  gameHandler.networkingHandler->receiveGameState();
+  NetworkPayload *gameStateData = &gameHandler.networkingHandler->gameStateData;
+
+  handlePollEvent(window, event, gameType, players);
+
+  ball->draw();
+  ball->setPosition(gameStateData->ball_x, gameStateData->ball_y);
+  entityHandler.getPointCounter()->setScoresFromParams(gameStateData->player1_score, gameStateData->player2_score);
+  entityHandler.setBallOwnerIndex(gameStateData->player_owning_ball);
+
+  pointCounter->draw();
+
+  for (int index = 0; index < players->size(); index++) {
+    Player *player = players->at(index);
+
+    // Update the remote player position
+    if (player->getControl() == REMOTE) {
+      RectangleShape *playerBody = player->getBody();
+      playerBody->setPosition(playerBody->getPosition().x, gameStateData->host_y);
+    }
+
+    player->update(index, deltaTime);
+    player->draw();
+  }
+
+  // Send client player data to Host
+  ClientToHostPayload clientPayload = gameHandler.networkingHandler->clientStateData;
+  Player *manualPlayer = getFirstPlayerWithControlType(players, MANUAL);
+  if (manualPlayer != nullptr) {
+    clientPayload.client_y = manualPlayer->getBody()->getPosition().y;
+  }
+
+  gameHandler.networkingHandler->sendClientState(clientPayload);
 }

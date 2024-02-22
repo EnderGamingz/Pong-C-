@@ -137,3 +137,16 @@ bool NetworkingHandler::receiveClientState() {
 
   return true;
 }
+
+void NetworkingHandler::setIpAddress(const String& address) {
+  this->ipAddress = address;
+}
+
+String NetworkingHandler::getIpAddress() {
+  return ipAddress;
+}
+
+String NetworkingHandler::getLocalIpAddress() {
+  IpAddress ip = IpAddress::getLocalAddress();
+  return ip.toString();
+}

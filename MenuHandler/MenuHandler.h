@@ -3,6 +3,8 @@
 
 #include "SFML/Graphics.hpp"
 
+class GameHandler;
+
 using namespace sf;
 
 class MenuHandler {
@@ -12,6 +14,10 @@ public:
   void drawCreateOnline(Event *event);
   void drawConnectOnline(Event *event);
 
+  void drawConnectOnlineInput(Event *event);
+
+  void updateIpText(Event *event);
+
 private:
   Font font;
   Text title;
@@ -19,9 +25,18 @@ private:
   Text createOnline;
   Text playOnline;
   Text quit;
-  Text testButton;
+  RectangleShape button;
+  Text buttonText;
+
+  RectangleShape inputBox;
+
+  String userIp;
+  Text userIpText;
 
   RenderWindow *window;
+  void handleDefaultEvent(Event *event, GameHandler *gameHandler);
+
+  float windowCenterX;
 };
 
 

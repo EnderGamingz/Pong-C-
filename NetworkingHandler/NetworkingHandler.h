@@ -49,9 +49,16 @@ public:
   int errorTimeout = 0;
   int errorTimeoutMax = 50;
 
+  void setIpAddress(const String &address);
+
+  String getIpAddress();
+
+  static String getLocalIpAddress();
+
 private:
   TcpSocket socket;
   TcpListener listener;
+  String ipAddress = "127.0.0.1";
 };
 
 
