@@ -35,6 +35,15 @@ PowerUp *getRandomPowerUp() {
   return createPowerUp(type);
 }
 
+Player *getFirstPlayerWithControlType(vector<Player *> *players, PlayerControl control) {
+  for (auto player: *players) {
+    if (player->getControl() == control) {
+      return player;
+    }
+  }
+  return nullptr;
+}
+
 int main() {
 
   GameHandler &gameHandler = GameHandler::getInstance();
@@ -101,6 +110,15 @@ int main() {
             player->update(index, deltaTime);
           }
 
+          if (gameType == ONLINE_HOST) {
+           gameHandler.networkingHandler->receiveClientState();
+           ClientToHostPayload clientPayload = gameHandler.networkingHandler->clientStateData;
+           Player* remotePlayer = getFirstPlayerWithControlType(players, PlayerControl::REMOTE);
+           if (remotePlayer != nullptr) {
+             remotePlayer->getBody()->setPosition(remotePlayer->getBody()->getPosition().x, clientPayload.client_y);
+           }
+          }
+
           ball->draw();
           ball->update();
 
@@ -113,6 +131,14 @@ int main() {
             vector<int> scores = entityHandler.getPointCounter()->getScores();
             networkPayload.player1_score = scores[0];
             networkPayload.player2_score = scores[1];
+
+            Player *playerWithControl = getFirstPlayerWithControlType(players, PlayerControl::MANUAL);
+            if (playerWithControl != nullptr) {
+              auto playerPos = playerWithControl->getBody()->getPosition();
+              networkPayload.host_y = playerPos.y;
+            }
+
+            networkPayload.player_owning_ball = entityHandler.getCurrentBallOwnerIndex();
 
             gameHandler.networkingHandler->sendGameState(networkPayload);
           }
@@ -152,8 +178,31 @@ int main() {
           ball->draw();
           ball->setPosition(gameStateData->ball_x, gameStateData->ball_y);
           entityHandler.getPointCounter()->setScoresFromParams(gameStateData->player1_score, gameStateData->player2_score);
+          entityHandler.setBallOwnerIndex(gameStateData->player_owning_ball);
 
           pointCounter->draw();
+
+          for (int index = 0; index < players->size(); index++) {
+            Player *player = players->at(index);
+
+            // Update the remote player position
+            if (player->getControl() == PlayerControl::REMOTE) {
+              RectangleShape *playerBody = player->getBody();
+              playerBody->setPosition(playerBody->getPosition().x, gameStateData->host_y);
+            }
+
+            player->update(index, deltaTime);
+            player->draw();
+          }
+
+          // Send client player data to Host
+          ClientToHostPayload clientPayload = gameHandler.networkingHandler->clientStateData;
+          Player* manualPlayer = getFirstPlayerWithControlType(players, PlayerControl::MANUAL);
+          if (manualPlayer != nullptr) {
+            clientPayload.client_y = manualPlayer->getBody()->getPosition().y;
+          }
+
+          gameHandler.networkingHandler->sendClientState(clientPayload);
 
         }
         break;

@@ -32,6 +32,8 @@ add_executable(pong main.cpp
         NetworkPayload/NetworkPayload.h
         NetworkPayload/NetworkPayload.cpp
         NetworkPayload/BasePayload.h
+        NetworkPayload/ClientToHostPayload.h
+        NetworkPayload/ClientToHostPayload.cpp
 )
 
 target_link_libraries(pong sfml-system sfml-window sfml-graphics sfml-network sfml-audio)

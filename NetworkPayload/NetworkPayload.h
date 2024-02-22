@@ -11,8 +11,10 @@ class NetworkPayload : public BasePayload {
 public:
   float ball_x{};
   float ball_y{};
+  float host_y{};
   int player1_score{};
   int player2_score{};
+  int player_owning_ball{};
 
   Packet pack() override;
   void unpack(Packet *packet) override;

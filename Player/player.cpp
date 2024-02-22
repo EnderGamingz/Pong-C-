@@ -28,6 +28,9 @@ Player::Player(PlayerSide side, Keyboard::Key up, Keyboard::Key down) {
 }
 
 void Player::update(int index, Time deltaTime) {
+  if (isOwningBall(index)) body.setFillColor(Color::Red);
+  else
+    body.setFillColor(Color::White);
 
   for (PowerUp *powerUp: activePowerUps) {
     powerUp->decrementTime(deltaTime);
@@ -41,11 +44,6 @@ void Player::update(int index, Time deltaTime) {
 
   body.setSize(Vector2f(width, height));
   body.setOrigin(0.0f, height / 2);
-
-  bool isBallOwner = isOwningBall(index);
-  if (isBallOwner) body.setFillColor(Color::Red);
-  else
-    body.setFillColor(Color::White);
 
   Vector2<unsigned int> windowSize = this->window->getSize();
   Vector2f playerPosition = body.getPosition();

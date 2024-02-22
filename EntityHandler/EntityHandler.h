@@ -15,12 +15,12 @@ public:
   EntityHandler();
   static EntityHandler &getInstance();
 
-  vector<Player*> *getPlayers();
+  vector<Player *> *getPlayers();
   Ball *getBall();
   Vector2f getBallPosition();
   PointCounter *getPointCounter();
 
-  vector<PowerUp*> *getPowerUps();
+  vector<PowerUp *> *getPowerUps();
   void addPowerUp(PowerUp *powerUp);
 
   void init_players();
@@ -35,11 +35,11 @@ public:
   void reset();
 
 private:
-  vector<Player*> players;
+  vector<Player *> players;
   Ball *ball;
   PointCounter *pointCounter;
   int currentBallOwnerIndex = -1;
-  vector<PowerUp*> powerUps;
+  vector<PowerUp *> powerUps;
 
 public:
   // Disable copy and assign

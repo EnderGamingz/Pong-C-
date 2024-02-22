@@ -1,6 +1,7 @@
 #ifndef PONG_NETWORKINGHANDLER_H
 #define PONG_NETWORKINGHANDLER_H
 
+#include "../NetworkPayload/ClientToHostPayload.h"
 #include "../NetworkPayload/NetworkPayload.h"
 #include "SFML/Network.hpp"
 #include "iostream"
@@ -30,8 +31,12 @@ public:
 
   bool listen(unsigned short port);
   NetworkStatus connect(const IpAddress &ip, unsigned short port);
-  bool sendGameState(NetworkPayload &gameState);
+  bool sendGameState(BasePayload &gameState);
+  bool sendClientState(BasePayload &clientState);
+
   bool receiveGameState();
+  bool receiveClientState();
+
   NetworkStatus accept();
   void disconnect();
 
@@ -39,6 +44,7 @@ public:
   NetworkRole role = CLIENT;
 
   NetworkPayload gameStateData{};
+  ClientToHostPayload clientStateData{};
 
   int errorTimeout = 0;
   int errorTimeoutMax = 50;

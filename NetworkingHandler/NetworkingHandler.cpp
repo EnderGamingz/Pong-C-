@@ -36,7 +36,7 @@ NetworkStatus NetworkingHandler::accept() {
   return NetworkStatus::POST_CONNECTION;
 }
 
-bool NetworkingHandler::sendGameState(NetworkPayload &gameState) {
+bool NetworkingHandler::sendGameState(BasePayload &gameState) {
   if (status != NetworkStatus::CONNECTED) return false;
   Packet packet = gameState.pack();
 
@@ -53,6 +53,25 @@ bool NetworkingHandler::sendGameState(NetworkPayload &gameState) {
   }
   return true;
 }
+
+bool NetworkingHandler::sendClientState(BasePayload &clientState) {
+  if (status != NetworkStatus::CONNECTED) return false;
+  Packet packet = clientState.pack();
+
+  if (socket.send(packet) != sf::Socket::Done) {
+    cout << "Networking Handler: Failed to send packet" << endl;
+    if (errorTimeout < errorTimeoutMax) {
+      errorTimeout++;
+    } else {
+      errorTimeout = 0;
+      cout << "Networking Handler: Timed out sending packet" << endl;
+      status = NetworkStatus::ERROR;
+    }
+    return false;
+  }
+  return true;
+}
+
 
 NetworkStatus NetworkingHandler::connect(const IpAddress &ip, unsigned short port) {
   cout << "Networking Handler: Trying to connect to " << ip << " on port " << port << endl;
@@ -87,9 +106,34 @@ bool NetworkingHandler::receiveGameState() {
   receivedGameState.unpack(&packet);
 
   cout << "Networking Handler: Received packet with game state" << endl;
-  cout << receivedGameState.ball_x << " " << receivedGameState.ball_y << endl;
 
   gameStateData = receivedGameState;
+
+  return true;
+}
+
+bool NetworkingHandler::receiveClientState() {
+  Packet packet;
+  sf::Socket::Status socketStatus = socket.receive(packet);
+  if (socketStatus == sf::Socket::NotReady) return true;
+  if (socketStatus == sf::Socket::Error || socketStatus == sf::Socket::Disconnected) {
+    cout << "Networking Handler: Failed to receive packet" << endl;
+    if (errorTimeout < errorTimeoutMax) {
+      errorTimeout++;
+    } else {
+      errorTimeout = 0;
+      cout << "Networking Handler: Timed out receiving packet" << endl;
+      status = NetworkStatus::ERROR;
+    }
+    return false;
+  }
+
+  ClientToHostPayload receivedClientState;
+  receivedClientState.unpack(&packet);
+
+  clientStateData = receivedClientState;
+
+  cout << "Networking Handler: Received packet with client state" << endl;
 
   return true;
 }
