@@ -3,8 +3,6 @@
 #ifndef PONG_PLAYER_H
 #define PONG_PLAYER_H
 
-#endif//PONG_PLAYER_H
-
 #include "../PowerUp/PowerUp.h"
 #include "SFML/Graphics.hpp"
 
@@ -65,3 +63,5 @@ private:
 
   std::vector<PowerUp *> activePowerUps;
 };
+
+#endif//PONG_PLAYER_H

@@ -1,8 +1,6 @@
 #ifndef PONG_POINTCOUNTER_H
 #define PONG_POINTCOUNTER_H
 
-#endif//PONG_POINTCOUNTER_H
-
 #include "../GameHandler/GameHandler.h"
 #include "../EntityHandler/EntityHandler.h"
 #include "../Player/Player.h"
@@ -29,3 +27,6 @@ private:
   vector<Player*> *players;
   vector<int> scores = vector<int>(6, 7);
 };
+
+
+#endif//PONG_POINTCOUNTER_H

@@ -1,8 +1,6 @@
 #ifndef PONG_RANDOMENGINE_H
 #define PONG_RANDOMENGINE_H
 
-#endif//PONG_RANDOMENGINE_H
-
 #include "random"
 
 /**
@@ -41,3 +39,5 @@ public:
   RandomEngine(const RandomEngine &) = delete;
   RandomEngine &operator=(const RandomEngine &) = delete;
 };
+
+#endif//PONG_RANDOMENGINE_H
