@@ -36,3 +36,12 @@ void PointCounter::increment(int index) {
     cout << "Invalid player index" << endl;
   }
 }
+
+vector<int> PointCounter::getScores() {
+  return scores;
+}
+
+void PointCounter::setScoresFromParams(int player1, int player2) {
+  scores[0] = player1;
+  scores[1] = player2;
+}

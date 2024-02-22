@@ -30,7 +30,7 @@ public:
 
   bool listen(unsigned short port);
   NetworkStatus connect(const IpAddress &ip, unsigned short port);
-  bool sendGameState(const NetworkPayload &gameState);
+  bool sendGameState(NetworkPayload &gameState);
   bool receiveGameState();
   NetworkStatus accept();
   void disconnect();

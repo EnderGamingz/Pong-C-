@@ -103,11 +103,16 @@ int main() {
 
           ball->draw();
           ball->update();
+
           if (gameType == GameType::ONLINE_HOST) {
             auto ballPos = ball->getBody()->getPosition();
             NetworkPayload networkPayload{};
             networkPayload.ball_x = ballPos.x;
             networkPayload.ball_y = ballPos.y;
+
+            vector<int> scores = entityHandler.getPointCounter()->getScores();
+            networkPayload.player1_score = scores[0];
+            networkPayload.player2_score = scores[1];
 
             gameHandler.networkingHandler->sendGameState(networkPayload);
           }
@@ -146,14 +151,13 @@ int main() {
 
           ball->draw();
           ball->setPosition(gameStateData->ball_x, gameStateData->ball_y);
+          entityHandler.getPointCounter()->setScoresFromParams(gameStateData->player1_score, gameStateData->player2_score);
 
           pointCounter->draw();
-
 
         }
         break;
     }
-
     window->display();
   }
 

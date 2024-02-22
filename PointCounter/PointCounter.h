@@ -19,9 +19,13 @@ public:
 
   void increment(int index);
 
+  vector<int> getScores();
+
+  void setScoresFromParams(int player1, int player2);
+
 private:
   RenderWindow *window;
   Font *font;
   vector<Player*> *players;
-  vector<int> scores;
+  vector<int> scores = vector<int>(6, 7);
 };

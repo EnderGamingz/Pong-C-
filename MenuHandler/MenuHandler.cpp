@@ -77,10 +77,10 @@ void MenuHandler::drawCreateOnline(Event *event) {
   NetworkRole role = networkingHandlerInstance->role;
   switch (connectionStatus) {
     case NetworkStatus::CONNECTED:
-      title.setString("Other player connected");
+      title.setString("TCP connection established");
       break;
     case NetworkStatus::CONNECTING:
-      title.setString("Connection in progress...");
+      title.setString("TCP Connection in progress...");
       break;
     case NetworkStatus::LISTENING:
     case NetworkStatus::AWAITING_CONNECTION:
@@ -104,7 +104,9 @@ void MenuHandler::drawCreateOnline(Event *event) {
     }
     if (event->type == Event::MouseButtonPressed) {
       if (this->testButton.getGlobalBounds().contains(event->mouseButton.x, event->mouseButton.y)) {
-        NetworkPayload payload = {20.0f, 20.0f};
+        NetworkPayload payload;
+        payload.ball_x = 20.0f;
+        payload.ball_y = 20.0f;
         if (!networkingHandlerInstance->sendGameState(payload)) {
           networkingHandlerInstance->status = NetworkStatus::ERROR;
         }
@@ -118,13 +120,13 @@ void MenuHandler::drawConnectOnline(Event *event) {
   NetworkStatus connectionStatus = GameHandler::getInstance().networkingHandler->status;
   switch (connectionStatus) {
     case NetworkStatus::CONNECTED:
-      title.setString("Connected to other player");
+      title.setString("TCP connection established");
       break;
     case NetworkStatus::CONNECTING:
-      title.setString("Connecting to other player");
+      title.setString("TCP Connection in progress...");
       break;
     case NetworkStatus::ERROR:
-      title.setString("Error Connecting");
+      title.setString("Socket Error, try again");
       break;
   }
   title.setPosition({window->getSize().x / 2 - title.getLocalBounds().width / 2, 10});

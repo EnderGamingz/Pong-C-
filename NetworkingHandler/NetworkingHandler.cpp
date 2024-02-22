@@ -36,10 +36,9 @@ NetworkStatus NetworkingHandler::accept() {
   return NetworkStatus::POST_CONNECTION;
 }
 
-bool NetworkingHandler::sendGameState(const NetworkPayload &gameState) {
+bool NetworkingHandler::sendGameState(NetworkPayload &gameState) {
   if (status != NetworkStatus::CONNECTED) return false;
-  Packet packet;
-  packet << gameState;
+  Packet packet = gameState.pack();
 
   if (socket.send(packet) != sf::Socket::Done) {
     cout << "Networking Handler: Failed to send packet" << endl;
@@ -84,16 +83,13 @@ bool NetworkingHandler::receiveGameState() {
     return false;
   }
 
-  NetworkPayload receivedGameState{};
-  if (packet >> receivedGameState) {
-    cout << "Networking Handler: Received packet with game state" << endl;
-    cout << receivedGameState.ball_x << " " << receivedGameState.ball_y << endl;
+  NetworkPayload receivedGameState;
+  receivedGameState.unpack(&packet);
 
-    gameStateData = receivedGameState;
-  } else {
-    cout << "Networking Handler: Failed to extract game state from packet" << endl;
-    return false;
-  }
+  cout << "Networking Handler: Received packet with game state" << endl;
+  cout << receivedGameState.ball_x << " " << receivedGameState.ball_y << endl;
+
+  gameStateData = receivedGameState;
 
   return true;
 }
