@@ -1,6 +1,5 @@
 #include "Ball.h"
 #include "../PointCounter/PointCounter.h"
-#include "../SoundHandler/SoundHandler.h"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "bugprone-integer-division"
@@ -57,11 +56,12 @@ void Ball::update() {
   }
 
   vector<PowerUp *> *availablePowerUps = EntityHandler::getInstance().getPowerUps();
+  const FloatRect &bodyBounds = body.getGlobalBounds();
   if (!availablePowerUps->empty() && ballIsOwned) {
     for (auto &powerUp: *availablePowerUps) {
       if (powerUp->isAssigned()) continue;
 
-      if (powerUp->getGlobalBounds().intersects(body.getGlobalBounds())) {
+      if (powerUp->getGlobalBounds().intersects(bodyBounds)) {
         PowerUpEffect effectType = powerUp->getEffect();
         powerUp->setAssignedToPlayer();
 
@@ -85,11 +85,23 @@ void Ball::update() {
   int index = 0;
   for (it = players->begin(); it != players->end(); ++it, ++index) {
     Player *player = *it;
-    if (player->getGlobalBounds().intersects(body.getGlobalBounds())) {
-      mt19937 engine = RandomEngine::getInstance().getEngine();
-      uniform_int_distribution<> angleDist(0,10);
+    const FloatRect &playerBounds = player->getGlobalBounds();
+    if (playerBounds.intersects(bodyBounds)) {
 
-      angle = 180 - angle + static_cast<float>(angleDist(engine));
+      bool collisionIsX;
+      if (player->getSide() == PlayerSide::LEFT) {
+        collisionIsX = bodyBounds.left < playerBounds.left + playerBounds.width - speed;
+      } else {
+        collisionIsX = bodyBounds.left + bodyBounds.width > playerBounds.left + speed;
+      }
+
+
+      if (collisionIsX) {
+        angle = -angle;
+      } else {
+        angle = 180 - angle;
+      }
+
       SoundHandler::getInstance().playSound(GameSounds[BOUNCE_PLAYER]);
       EntityHandler::getInstance().setBallOwnerIndex(index);
       break;
@@ -129,6 +141,7 @@ void Ball::setControlType(BallControl type) {
 BallControl Ball::getControlType() {
   return control;
 }
+
 void Ball::setPosition(float x, float y) {
   pos_x = x;
   pos_y = y;

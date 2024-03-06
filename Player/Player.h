@@ -53,7 +53,7 @@ private:
   RectangleShape body;
   RenderWindow *window;
   float pos_y;
-  float width = 1.0f;
+  float width = 20.0f;
   float height = initialHeight;
   float speed = initialSpeed;
 
